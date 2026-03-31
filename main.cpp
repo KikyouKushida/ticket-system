@@ -8,6 +8,7 @@
 #include "user.h"
 #include "station.h"
 #include "train.h"
+#include "seat.h"
 
 std::vector<std::string> separateBy(std::string &str, char c) {
     std::vector<std::string> processed_list_of_strings;

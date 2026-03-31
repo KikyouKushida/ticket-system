@@ -5,6 +5,10 @@
 #include <vector>
 #include "info.h"
 #include "station.h"
+#include "seat.h"
+
+struct SeatRecord;
+struct SeatManager;
 
 struct TrainRecord {
     static int train_count;
