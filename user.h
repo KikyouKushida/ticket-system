@@ -9,7 +9,6 @@ std::set<std::string, bool> logined_user;
 
 struct UserRecord {
     static int user_count;
-    static const char* user_file_name;
     char username[USERNAME_LEN];
     char password[PASSWORD_LEN];
     char name[NAME_LEN];
@@ -23,11 +22,12 @@ struct UserRecord {
 
 struct UserManager {
     static bool first;
+    const char* user_file_name = "user_file.txt";;
     std::fstream file;
     Bplustree<std::string, int> data;
     UserManager();
-    void open_file(const char *user_file_name);
-    void close_file(const char *user_file_name);
+    void open_file();
+    void close_file();
     void write_record(const UserRecord& user_record);
     UserRecord read_record(const int &user_no);
     int add_user(const std::string &cur_username, UserRecord &user_record);

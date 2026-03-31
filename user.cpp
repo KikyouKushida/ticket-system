@@ -2,7 +2,6 @@
 #include <cstring>
 
 int UserRecord::user_count = 0;
-const char* UserRecord::user_file_name = "user_file.txt";
 bool UserManager::first = true;
 
 UserRecord::UserRecord(const std::string &username, const std::string &password, const std::string &name, const std::string &mailAddr, const int &privilege) {
@@ -10,7 +9,7 @@ UserRecord::UserRecord(const std::string &username, const std::string &password,
     utils::write_string(this->password, password);
     utils::write_string(this->name, name);
     utils::write_string(this->mailAddr, mailAddr);
-    this->privilege = privilege;
+    this -> privilege = privilege;
 }
 
 UserRecord::UserRecord() {
@@ -23,10 +22,10 @@ UserRecord::UserRecord() {
 
 void UserRecord::create_user_no() {
     user_count += 1;
-    this->user_no = user_count;
+    this -> user_no = user_count;
 }
 
-void UserManager::open_file(const char *user_file_name) {
+void UserManager::open_file() {
     file.open(user_file_name, std::ios::in | std::ios::out | std::ios::binary);
     if (!file) {
         file.open(user_file_name, std::ios::out | std::ios::binary); // create a new file
@@ -39,7 +38,7 @@ UserManager::UserManager() {
     
 }
 
-void UserManager::close_file(const char *user_file_name) {
+void UserManager::close_file() {
     file.close();
 }
 
@@ -60,6 +59,7 @@ int UserManager::add_user(const std::string &cur_username, UserRecord &user_reco
         user_record.privilege = 10;
         user_record.create_user_no();
         write_record(user_record);
+        first = false;
         return 0;
     }
     int cur_user_no = data.find_value(cur_username);

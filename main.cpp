@@ -6,6 +6,7 @@
 #include "info.h"
 #include "file.h"
 #include "user.h"
+#include "station.h"
 #include "train.h"
 
 std::vector<std::string> separateBy(std::string &str, char c) {
@@ -24,6 +25,11 @@ std::vector<std::string> separateBy(std::string &str, char c) {
 }
 
 UserManager user_manager;
+TrainManager train_manager;
+
+void set_up() {
+    user_manager.open_file();
+}
 
 bool execute(std::string &instruction) {
     std::vector<std::string> parts = separateBy(instruction, ' ');
@@ -107,6 +113,7 @@ bool execute(std::string &instruction) {
 
 int main() {
     std::cout << "Welcome to the ticket system!\n";
+    set_up();
     while (true) {
         std::string instruction;
         std::getline(std::cin, instruction);
