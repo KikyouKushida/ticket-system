@@ -14,4 +14,5 @@ struct Bplustree {
     bool insert_value(T1 key, T2 data);
     bool erase_value(T1 key);
     T2 find_value(T1 key);
+    std::vector<T2> find_all_values(T1 key);
 };

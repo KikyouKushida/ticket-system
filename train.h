@@ -33,7 +33,7 @@ struct TrainRecord {
 
 struct QueryTicketReturn {
     std::string train_id, depart_station_name, arrive_station_name;
-    pii depart_time, arrive_time;
+    pii depart_time, arrive_time, depart_date, arrive_date;
     int price, seat;
 };
 

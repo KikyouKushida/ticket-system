@@ -2,6 +2,8 @@
 
 #include <memory.h>
 #include <string> 
+#include <algorithm>
+#include <vector>
 
 constexpr int PAGE_SIZE = 4096;
 constexpr int USERNAME_LEN = 21;
@@ -59,6 +61,24 @@ inline int time_to_int(const pii &time) {
 
 inline pii int_to_time(const int &num) {
     return pii(num / 60, num % 60);
+}
+
+inline std::vector<int> intersect(std::vector<int> &v1, std::vector<int> &v2) {
+    std::vector<int> ans;
+    if (v1.size() == 0 || v2.size() == 0) {
+        return ans;
+    }
+    std::sort(v1.begin(), v1.end());
+    std::sort(v2.begin(), v2.end());
+    for (int i = 0, j = 0; i < v1.size(); ++i) {
+        while (j + 1 < v2.size() && v2[j] < v1[i]) {
+            ++j;
+        }
+        if (v1[i] == v2[j]) {
+            ans.push_back(v1[i]);
+        }
+    }
+    return ans;
 }
 
 }
