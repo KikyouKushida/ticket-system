@@ -232,7 +232,29 @@ std::vector<QueryTicketReturn> TrainManager::query_ticket(const std::string &dep
             tmp_query_ticket_return.arrive_date = utils::int_to_date(now_date);
             tmp_query_ticket_return.arrive_time = utils::int_to_time(now_time);
             tmp_query_ticket_return.seat = seat_manager.get_seats(this_train_no, utils::date_to_int(date) - delta_date, depart_index, arrive_index);
+            tmp_query_ticket_return.time = (utils::date_to_int(tmp_query_ticket_return.arrive_date) - 
+                utils::date_to_int(tmp_query_ticket_return.depart_date)) * 1440 + utils::time_to_int(tmp_query_ticket_return.arrive_time)
+                - utils::time_to_int(tmp_query_ticket_return.depart_time);
             query_ticket_return.push_back(tmp_query_ticket_return);
+        }
+        if (sorting == 1) {
+            // sort by time and train_id
+            std::sort(query_ticket_return.begin(), query_ticket_return.end(), [&](QueryTicketReturn &a, QueryTicketReturn &b) {
+                if (a.time != b.time) {
+                    return a.time < b.time;
+                } else {
+                    return a.train_id < b.train_id;
+                }
+            });
+        } else {
+            // sort by price and train_id
+            std::sort(query_ticket_return.begin(), query_ticket_return.end(), [&](QueryTicketReturn &a, QueryTicketReturn &b) {
+                if (a.price != b.price) {
+                    return a.price < b.price;
+                } else {
+                    return a.train_id < b.train_id;
+                }
+            });
         }
         return query_ticket_return;
     }
