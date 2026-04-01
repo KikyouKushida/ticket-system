@@ -28,8 +28,8 @@ struct SeatManager {
     void add_seats(const int &train_no, const int &date, const int &seat_num);
     int get_seats(const int &train_no, const int &date, const int &l, const int &r);
     std::vector<int> get_all_seats(const int &train_no, const int &date);
-    int buy_seats(const int &train_no, const int &date, const int &l, const int &r);
-    int refund_seats(const int &train_no, const int &date, const int &l, const int &r);
+    int buy_seats(const int &train_no, const int &date, const int &l, const int &r, const int &tickets);
+    int refund_seats(const int &train_no, const int &date, const int &l, const int &r, const int &tickets);
 };
 
 SeatManager seat_manager;
