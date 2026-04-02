@@ -25,11 +25,73 @@ std::vector<std::string> separateBy(std::string &str, char c) {
     return processed_list_of_strings;
 }
 
+pii string_to_date(std::string &str) {
+    return pii((str[0] - '0') * 10 + str[1] - '0', (str[3] - '0') * 10 + str[4] - '0');
+}
+
+pii string_to_time(std::string &str) {
+    return pii((str[0] - '0') * 10 + str[1] - '0', (str[3] - '0') * 10 + str[4] - '0');
+}
+
+void print_query_train(std::vector<QueryTrainReturn> &query_train_return) {
+    if (query_train_return.size() == 0) {
+        std::cout << "-1\n";
+        return;
+    }
+    for (int i = 0; i < query_train_return.size(); ++i) {
+        std::cout << query_train_return[i].station_name << " ";
+        if (i == 0) {
+            std::cout << "xx-xx xx:xx -> ";
+        } else {
+            std::string arrive_date = utils::int_to_string(query_train_return[i].arrive_date.first) + "-" + 
+                utils::int_to_string(query_train_return[i].arrive_date.second);
+            std::string arrive_time = utils::int_to_string(query_train_return[i].arrive_time.first) + ":" + 
+                utils::int_to_string(query_train_return[i].arrive_time.second);
+            std::cout << arrive_date << " " << arrive_time << " -> ";
+        }
+        if (i == query_train_return.size() - 1) {
+            std::cout << "xx-xx xx:xx ";
+        } else {
+            std::string depart_date = utils::int_to_string(query_train_return[i].depart_date.first) + "-" + 
+                utils::int_to_string(query_train_return[i].depart_date.second);
+            std::string depart_time = utils::int_to_string(query_train_return[i].depart_time.first) + ":" + 
+                utils::int_to_string(query_train_return[i].depart_time.second);
+            std::cout << depart_date << " " << depart_time << " ";
+        }
+        std::cout << query_train_return[i].price << " ";
+        if (i == query_train_return.size() - 1) {
+            std::cout << "x\n";
+        } else {
+            std::cout << query_train_return[i].seat << "\n";
+        }
+    }
+}
+
+void print_query_ticket(std::vector<QueryTicketReturn> &query_ticket_return) {
+    std::cout << query_ticket_return.size() << "\n";
+    for (int i = 0; i < query_ticket_return.size(); ++i) {
+        std::string depart_date = utils::int_to_string(query_ticket_return[i].depart_date.first) + "-" + 
+            utils::int_to_string(query_ticket_return[i].depart_date.second);
+        std::string depart_time = utils::int_to_string(query_ticket_return[i].depart_time.first) + ":" + 
+            utils::int_to_string(query_ticket_return[i].depart_time.second);
+        std::string arrive_date = utils::int_to_string(query_ticket_return[i].arrive_date.first) + "-" + 
+            utils::int_to_string(query_ticket_return[i].arrive_date.second);
+        std::string arrive_time = utils::int_to_string(query_ticket_return[i].arrive_time.first) + ":" + 
+            utils::int_to_string(query_ticket_return[i].arrive_time.second);
+        std::cout << query_ticket_return[i].train_id << " " << query_ticket_return[i].depart_station_name << " " 
+            << depart_date << " " << depart_time << " -> " << query_ticket_return[i].arrive_station_name << " " 
+            << arrive_date << " " << arrive_time << " " << query_ticket_return[i].price << " " 
+            << query_ticket_return[i].seat << "\n";
+    }
+}
+
 UserManager user_manager;
 TrainManager train_manager;
 
 void set_up() {
     user_manager.open_file();
+    seat_manager.open_file();
+    train_manager.open_file();
 }
 
 bool execute(std::string &instruction) {
@@ -108,6 +170,109 @@ bool execute(std::string &instruction) {
         }
         UserRecord user_record(u, p, n, m, g);
         std::cout << user_manager.modify_profile(c, user_record) << "\n";
+    } else if (parts[1] == "add_train") {
+        std::string i, x, d, y;
+        int n = 0, m = 0;
+        std::vector<std::string> s, p, t, o;
+        for (int j = 2; j < parts.size(); j += 2) {
+            if (parts[j] == "-i") {
+                i = parts[j + 1];
+            } else if (parts[j] == "-n") {
+                n = utils::string_to_int(parts[j + 1]);
+            } else if (parts[j] == "-m") {
+                m = utils::string_to_int(parts[j + 1]);
+            } else if (parts[j] == "-s") {
+                s = separateBy(parts[j + 1], '|');
+            } else if (parts[j] == "-p") {
+                p = separateBy(parts[j + 1], '|');
+            } else if (parts[j] == "-x") {
+                x = parts[j + 1];
+            } else if (parts[j] == "-t") {
+                t = separateBy(parts[j + 1], '|');
+            } else if (parts[j] == "-o") {
+                o = separateBy(parts[j + 1], '|');
+            } else if (parts[j] == "-d") {
+                d = parts[j + 1];
+            } else {
+                y = parts[j + 1];
+            }
+        }
+        std::string station_name[STATION_NUM];
+        int prices[STATION_NUM], travel_times[STATION_NUM], stop_times[STATION_NUM];
+        for (int j = 0; j < s.size(); ++j) {
+            station_name[j] = s[j];
+        }
+        for (int j = 0; j < p.size(); ++j) {
+            prices[j] = utils::string_to_int(p[j]);
+        }
+        for (int j = 0; j < t.size(); ++j) {
+            travel_times[j] = utils::string_to_int(t[j]);
+        }
+        for (int j = 0; j < o.size(); ++j) {
+            stop_times[j] = utils::string_to_int(o[j]);
+        }
+        TrainRecord train_record(i, n, station_name, m, prices, x, travel_times, stop_times, d);
+        train_record.type = y[0];
+        std::cout << train_manager.add_train(train_record) << "\n";
+    } else if (parts[1] == "delete_train") {
+        std::string i = parts[3];
+        std::cout << train_manager.delete_train(i) << "\n";
+    } else if (parts[1] == "release_train") {
+        std::string i = parts[3];
+        std::cout << train_manager.release_train(i) << "\n";
+    } else if (parts[1] == "query_train") {
+        std::string i, d;
+        for (int j = 2; j < parts.size(); j += 2) {
+            if (parts[j] == "-i") {
+                i = parts[j + 1];
+            } else {
+                d = parts[j + 1];
+            }
+        }
+        pii date = string_to_date(d);
+        std::vector<QueryTrainReturn> query_train_return = train_manager.query_train(i, date);
+        print_query_train(query_train_return);
+    } else if (parts[1] == "query_ticket") {
+        std::string s, t, d, p = "time";
+        for (int j = 2; j < parts.size(); j += 2) {
+            if (parts[j] == "-s") {
+                s = parts[j + 1];
+            } else if (parts[j] == "-t") {
+                t = parts[j + 1];
+            } else if (parts[j] == "-d") {
+                d = parts[j + 1];
+            } else {
+                p = parts[j + 1];
+            }
+        }
+        pii date = string_to_date(d);
+        pii time = pii(0, 0);
+        int sorting = 0;
+        if (p == "time") {
+            sorting = 1;
+        }
+        std::vector<QueryTicketReturn> query_ticket_return = train_manager.query_ticket(s, t, date, time, 0, sorting);
+        print_query_ticket(query_ticket_return);
+    } else if (parts[1] == "query_transfer") {
+        std::string s, t, d, p = "time";
+        for (int j = 2; j < parts.size(); j += 2) {
+            if (parts[j] == "-s") {
+                s = parts[j + 1];
+            } else if (parts[j] == "-t") {
+                t = parts[j + 1];
+            } else if (parts[j] == "-d") {
+                d = parts[j + 1];
+            } else {
+                p = parts[j + 1];
+            }
+        }
+        pii date = string_to_date(d);
+        int sorting = 0;
+        if (p == "time") {
+            sorting = 1;
+        }
+        std::vector<QueryTicketReturn> query_transfer_return = train_manager.query_transfer(s, t, date, sorting);
+        print_query_ticket(query_transfer_return);
     }
     return true;
 }

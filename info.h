@@ -31,6 +31,20 @@ inline int string_to_int(const std::string &src) {
     return result;
 }
 
+inline std::string int_to_string(const int &src) {
+    std::string result;
+    int x = abs(src);
+    while (x) {
+        result += (x % 10 + '0');
+        x = x / 10;
+    }
+    if (src < 0) {
+        result += '-';
+    }
+    std::reverse(result.begin(), result.end());
+    return result;
+}
+
 inline int date_to_int(const pii &date) {
     if (date.first == 6) {
         return date.second;

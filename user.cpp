@@ -59,6 +59,7 @@ int UserManager::add_user(const std::string &cur_username, UserRecord &user_reco
         user_record.privilege = 10;
         user_record.create_user_no();
         write_record(user_record);
+        data.insert_value(user_record.username, user_record.user_no);
         first = false;
         return 0;
     }
@@ -120,7 +121,7 @@ std::string UserManager::query_profile(const std::string &cur_username, const st
         answer += " ";
         answer += this_user_record.mailAddr;
         answer += " ";
-        answer += this_user_record.privilege;
+        answer += utils::int_to_string(this_user_record.privilege);
         return answer;
     }
     int this_user_no = data.find_value(username);
@@ -138,7 +139,7 @@ std::string UserManager::query_profile(const std::string &cur_username, const st
     answer += " ";
     answer += this_user_record.mailAddr;
     answer += " ";
-    answer += this_user_record.privilege;
+    answer += utils::int_to_string(this_user_record.privilege);
     return answer;
 }
 
@@ -171,7 +172,7 @@ std::string UserManager::modify_profile(const std::string &cur_username, const U
         answer += " ";
         answer += this_user_record.mailAddr;
         answer += " ";
-        answer += this_user_record.privilege;
+        answer += utils::int_to_string(this_user_record.privilege);
         return answer;
     }
     int this_user_no = data.find_value(user_record.username);
@@ -205,6 +206,6 @@ std::string UserManager::modify_profile(const std::string &cur_username, const U
     answer += " ";
     answer += this_user_record.mailAddr;
     answer += " ";
-    answer += this_user_record.privilege;
+    answer += utils::int_to_string(this_user_record.privilege);
     return answer;
 }

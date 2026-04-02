@@ -42,7 +42,9 @@ void SeatManager::add_seats(const int &train_no, const int &date, const int &sea
     SeatRecord seat_record;
     seat_record.train_no = train_no;
     seat_record.date = date;
-    memset(seat_record.seats, 0, sizeof(seat_record.seats));
+    for (int i = 0; i < STATION_NUM - 1; ++i) {
+        seat_record.seats[i] = seat_num;
+    }
     seat_record.create_seat_no();
     write_record(seat_record);
     data.insert_value(pii(train_no, date), seat_record.seat_no);

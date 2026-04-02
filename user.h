@@ -5,7 +5,7 @@
 #include "info.h"
 #include "bplustree.h"
 
-std::set<std::string, bool> logined_user;
+std::set<std::string> logined_user;
 
 struct UserRecord {
     static int user_count;
