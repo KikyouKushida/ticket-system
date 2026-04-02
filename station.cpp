@@ -39,6 +39,17 @@ StationRecord StationManager::read_record(const int &station_no) {
     return station_record;
 }
 
+int StationManager::add_station(StationRecord &station_record) {
+    int this_station_no = data.find_value(station_record.station_name);
+    if (this_station_no > 0) {
+        return -1;
+    }
+    station_record.create_station_no();
+    write_record(station_record);
+    data.insert_value(station_record.station_name, station_record.station_no);
+    return 0;
+}
+
 int StationManager::query_station_no(const std::string& station_name) {
     return data.find_value(station_name);
 }

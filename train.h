@@ -58,7 +58,7 @@ struct TrainManager {
     int release_train(const std::string &train_id);
     std::vector<QueryTrainReturn> query_train(const std::string &train_id, const pii &depart_date);
     std::vector<QueryTicketReturn> query_ticket(const std::string &depart_station, const std::string &arrive_station, 
-        const pii &date, int sorting);
+        const pii &depart_date, const pii &time, const int &exclude_train_no, const int &sorting);
     std::vector<QueryTicketReturn> query_transfer(const std::string &depart_station, const std::string &arrive_station, 
-        const pii &date, int sorting);
+        const pii &depart_date, const int &sorting);
 };

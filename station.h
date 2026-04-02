@@ -22,6 +22,7 @@ struct StationManager {
     void close_file();
     void write_record(const StationRecord& station_record);
     StationRecord read_record(const int &station_no);
+    int add_station(StationRecord &station_record);
     int query_station_no(const std::string& station_name);
     std::string query_station_name(const int &station_no);
 };

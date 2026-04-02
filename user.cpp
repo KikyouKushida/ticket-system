@@ -73,6 +73,7 @@ int UserManager::add_user(const std::string &cur_username, UserRecord &user_reco
     }
     user_record.create_user_no();
     write_record(user_record);
+    data.insert_value(user_record.username, user_record.user_no);
     return 0;
 }
 

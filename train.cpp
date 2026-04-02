@@ -83,6 +83,7 @@ int TrainManager::add_train(TrainRecord &train_record) {
     }
     train_record.create_train_no();
     write_record(train_record);
+    data1.insert_value(train_record.train_id, train_record.train_no);
     return 0;
 }
 
@@ -113,6 +114,9 @@ int TrainManager::release_train(const std::string &train_id) {
     for (int i = 0; i < this_train_record.station_num; ++i) {
         data2.insert_value(this_train_record.station_no[i], this_train_no);
     }
+    for (int i = this_train_record.sale_begin_date; i <= this_train_record.sale_end_date; ++i) {
+        seat_manager.add_seats(this_train_record.train_no, i, this_train_record.seat_num);
+    } 
     return 0;
 }
 
@@ -123,15 +127,19 @@ std::vector<QueryTrainReturn> TrainManager::query_train(const std::string &train
         return query_train_return;
     }
     TrainRecord this_train_record = read_record(this_train_no);
-    if (this_train_record.released == false) {
-        return query_train_return;
-    }
     if (utils::date_to_int(depart_date) < this_train_record.sale_begin_date || 
         utils::date_to_int(depart_date) > this_train_record.sale_end_date) {
             return query_train_return;
         }
     int now_date = utils::date_to_int(depart_date), now_time = this_train_record.start_time, now_price = 0;
-    std::vector<int> this_seat_record = seat_manager.get_all_seats(this_train_no, now_date);
+    std::vector<int> this_seat_record;
+    if (this_train_record.released == true) {
+        this_seat_record = seat_manager.get_all_seats(this_train_no, now_date);
+    } else {
+        for (int i = 0; i < this_train_record.station_num - 1; ++i) {
+            this_seat_record.push_back(this_train_record.seat_num);
+        }
+    }
     QueryTrainReturn tmp_query_train_return;
     tmp_query_train_return.station_name = station_manager.query_station_name(this_train_record.station_no[0]);
     tmp_query_train_return.depart_date = utils::int_to_date(now_date);
@@ -174,8 +182,8 @@ std::vector<QueryTrainReturn> TrainManager::query_train(const std::string &train
     return query_train_return;
 }
 
-std::vector<QueryTicketReturn> TrainManager::query_ticket(const std::string &depart_station, const std::string &arrive_station, const pii &date, 
-    int sorting) {
+std::vector<QueryTicketReturn> TrainManager::query_ticket(const std::string &depart_station, const std::string &arrive_station, const pii &depart_date, 
+    const pii &time, const int &exclude_train_no, const int &sorting) {
         std::vector<QueryTicketReturn> query_ticket_return;
         int depart_station_no = station_manager.query_station_no(depart_station);
         int arrive_station_no = station_manager.query_station_no(arrive_station);
@@ -187,6 +195,10 @@ std::vector<QueryTicketReturn> TrainManager::query_ticket(const std::string &dep
         std::vector<int> possible_train_no = utils::intersect(possible_train_no_1, possible_train_no_2);
         for (int i = 0; i < possible_train_no.size(); ++i) {
             int this_train_no = possible_train_no[i];
+            if (exclude_train_no == this_train_no) {
+                continue;
+            }
+            pii date = depart_date;
             TrainRecord this_train_record = read_record(this_train_no);
             int depart_index = -1, arrive_index = -1;
             for (int j = 0; j < this_train_record.station_num; ++j) {
@@ -203,15 +215,19 @@ std::vector<QueryTicketReturn> TrainManager::query_ticket(const std::string &dep
             int now_date = this_train_record.sale_begin_date, now_time = this_train_record.start_time;
             for (int j = 0; j < depart_index; ++j) {
                 now_time += this_train_record.travel_times[j];
+                now_time += this_train_record.stop_times[j];
                 while (now_time >= 1440) {
                     now_time -= 1440;
                     now_date += 1;
                 }
             }
+            if (now_time < utils::time_to_int(time)) {
+                date = utils::int_to_date(utils::date_to_int(date) + 1);
+            }
             int delta_date = now_date - this_train_record.sale_begin_date;
             if (utils::date_to_int(date) - delta_date < this_train_record.sale_begin_date || 
                 utils::date_to_int(date) - delta_date > this_train_record.sale_end_date) {
-                continue;
+                    continue;
             }
             QueryTicketReturn tmp_query_ticket_return;
             tmp_query_ticket_return.train_id = this_train_record.train_id;
@@ -223,7 +239,9 @@ std::vector<QueryTicketReturn> TrainManager::query_ticket(const std::string &dep
             now_date = utils::date_to_int(date);
             for (int j = depart_index; j < arrive_index; ++j) {
                 tmp_query_ticket_return.price += this_train_record.prices[j];
-                now_time += this_train_record.travel_times[j];
+                if (j > depart_index) {
+                    now_time += this_train_record.travel_times[j - 1];
+                }
                 while (now_time >= 1440) {
                     now_time -= 1440;
                     now_date += 1;
@@ -257,4 +275,72 @@ std::vector<QueryTicketReturn> TrainManager::query_ticket(const std::string &dep
             });
         }
         return query_ticket_return;
+    }
+
+std::vector<QueryTicketReturn> TrainManager::query_transfer(const std::string &depart_station, const std::string &arrive_station, 
+    const pii &date, const int &sorting) {
+        std::vector<QueryTicketReturn> query_transfer_return;
+        int depart_station_no = station_manager.query_station_no(depart_station);
+        int arrive_station_no = station_manager.query_station_no(arrive_station);
+        if (depart_station_no <= 0 || arrive_station_no <= 0 || depart_station_no == arrive_station_no) {
+            return query_transfer_return;
+        }
+        std::vector<int> possible_train_no_1 = data2.find_all_values(station_manager.query_station_no(depart_station));
+        for (int i = 0; i < possible_train_no_1.size(); ++i) {
+            int this_train_no = possible_train_no_1[i];
+            TrainRecord this_train_record = read_record(this_train_no);
+            int depart_index = -1;
+            for (int j = 0; j < this_train_record.station_num; ++j) {
+                if (depart_station_no == this_train_record.station_no[j]) {
+                    depart_index = j;
+                }
+            }
+            if (depart_index == -1) {
+                continue;
+            }
+            int now_date = this_train_record.sale_begin_date, now_time = this_train_record.start_time;
+            for (int j = 0; j < depart_index; ++j) {
+                now_time += this_train_record.travel_times[j];
+                now_time += this_train_record.stop_times[j];
+                while (now_time >= 1440) {
+                    now_time -= 1440;
+                    now_date += 1;
+                }
+            }
+            int delta_date = now_date - this_train_record.sale_begin_date;
+            if (utils::date_to_int(date) - delta_date < this_train_record.sale_begin_date || 
+                utils::date_to_int(date) - delta_date > this_train_record.sale_end_date) {
+                continue;
+            }
+            now_date = utils::date_to_int(date);
+            QueryTicketReturn tmp1, tmp2;
+            std::vector<int> this_seat_record = seat_manager.get_all_seats(this_train_no, now_date);
+            tmp1.train_id = this_train_record.train_id;
+            tmp1.price = tmp1.time = 0;
+            tmp1.seat = 1e9;
+            tmp1.depart_station_name = depart_station;
+            tmp1.depart_date = date;
+            tmp1.depart_time = utils::int_to_time(now_time);
+            for (int j = depart_index; j < this_train_record.station_num - 1; ++j) {
+                now_time += this_train_record.travel_times[j];
+                if (j > depart_index) {
+                    now_time += this_train_record.stop_times[j - 1];
+                }
+                while (now_time >= 1440) {
+                    now_time -= 1440;
+                    now_date += 1;
+                }
+                tmp1.arrive_station_name = station_manager.query_station_name(this_train_record.station_no[j + 1]);
+                tmp1.arrive_date = utils::int_to_date(now_date);
+                tmp1.arrive_time = utils::int_to_time(now_time);
+                tmp1.price += this_train_record.prices[j];
+                tmp1.time += this_train_record.travel_times[j];
+                if (j > depart_index) {
+                    tmp1.time += this_train_record.stop_times[j - 1];
+                }
+                tmp1.seat = std::min(tmp1.seat, this_seat_record[j]);
+                std::vector<QueryTicketReturn> tmp3 = query_ticket(tmp1.arrive_station_name, 
+                    arrive_station, tmp1.arrive_date, tmp1.arrive_time, this_train_no, sorting);
+            }
+        }
     }

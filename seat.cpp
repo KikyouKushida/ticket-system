@@ -26,9 +26,9 @@ void SeatManager::close_file() {
     file.close();
 }
 
-void SeatManager::write_record(const SeatRecord& train_record) {
-    file.seekp(train_record.train_no * sizeof(SeatRecord));
-    file.write(reinterpret_cast<const char*>(&train_record), sizeof(SeatRecord));
+void SeatManager::write_record(const SeatRecord& seat_record) {
+    file.seekp(seat_record.seat_no * sizeof(SeatRecord));
+    file.write(reinterpret_cast<const char*>(&seat_record), sizeof(SeatRecord));
 }
 
 SeatRecord SeatManager::read_record(const int &seat_no) {
@@ -42,7 +42,7 @@ void SeatManager::add_seats(const int &train_no, const int &date, const int &sea
     SeatRecord seat_record;
     seat_record.train_no = train_no;
     seat_record.date = date;
-    memset(seat_record.seats, STATION_NUM - 1, sizeof(seat_record.seats));
+    memset(seat_record.seats, 0, sizeof(seat_record.seats));
     seat_record.create_seat_no();
     write_record(seat_record);
     data.insert_value(pii(train_no, date), seat_record.seat_no);
@@ -71,6 +71,7 @@ std::vector<int> SeatManager::get_all_seats(const int &train_no, const int &date
     for (int i = 0; i < STATION_NUM - 1; ++i) {
         ans.push_back(seat_record.seats[i]);
     }
+    return ans;
 }
 
 int SeatManager::buy_seats(const int &train_no, const int &date, const int &l, const int &r, const int &tickets) {
