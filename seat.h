@@ -17,13 +17,14 @@ struct SeatRecord {
 };
 
 struct SeatManager {
-    const char* seat_file_name = "seat_file.txt";
+    const char* seat_file_name = "data/seat_file.txt";
     std::fstream file;
     Bplustree<pii, int> data;
     SeatManager();
     void open_file();
     void close_file();
     void write_record(const SeatRecord& seat_record);
+    int query_seat_no(const int &train_no, const int &date);
     SeatRecord read_record(const int &seat_no);
     void add_seats(const int &train_no, const int &date, const int &seat_num);
     int get_seats(const int &train_no, const int &date, const int &l, const int &r);
@@ -32,4 +33,4 @@ struct SeatManager {
     int refund_seats(const int &train_no, const int &date, const int &l, const int &r, const int &tickets);
 };
 
-SeatManager seat_manager;
+extern SeatManager seat_manager;

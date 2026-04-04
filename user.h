@@ -5,7 +5,7 @@
 #include "info.h"
 #include "bplustree.h"
 
-std::set<std::string> logined_user;
+extern std::set<std::string> logined_user;
 
 struct UserRecord {
     static int user_count;
@@ -22,7 +22,7 @@ struct UserRecord {
 
 struct UserManager {
     static bool first;
-    const char* user_file_name = "user_file.txt";;
+    const char* user_file_name = "data/user_file.txt";;
     std::fstream file;
     Bplustree<std::string, int> data;
     UserManager();
@@ -30,6 +30,7 @@ struct UserManager {
     void close_file();
     void write_record(const UserRecord& user_record);
     UserRecord read_record(const int &user_no);
+    int query_user_no(const std::string& username);
     int add_user(const std::string &cur_username, UserRecord &user_record);
     int login_user(const std::string &username, const std::string &password);
     int logout_user(const std::string &username);
@@ -37,3 +38,5 @@ struct UserManager {
     std::string query_profile(const std::string &cur_username, const std::string &username);
     std::string modify_profile(const std::string &cur_username, const UserRecord &user_record);
 };
+
+extern UserManager user_manager;

@@ -44,7 +44,7 @@ struct QueryTrainReturn {
 };
 
 struct TrainManager {
-    const char* train_file_name = "train_file.txt";
+    const char* train_file_name = "data/train_file.txt";
     std::fstream file;
     Bplustree<std::string, int> data1;
     Bplustree<int, int> data2;
@@ -53,6 +53,8 @@ struct TrainManager {
     void close_file();
     void write_record(const TrainRecord& train_record);
     TrainRecord read_record(const int &train_no);
+    int query_train_no(const std::string& train_id);
+    std::string query_train_id(const int &train_no);
     int add_train(TrainRecord &train_record);
     int delete_train(const std::string &train_id);
     int release_train(const std::string &train_id);
@@ -62,3 +64,5 @@ struct TrainManager {
     std::vector<QueryTicketReturn> query_transfer(const std::string &depart_station, const std::string &arrive_station, 
         const pii &depart_date, const int &sorting);
 };
+
+extern TrainManager train_manager;

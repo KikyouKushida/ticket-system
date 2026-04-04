@@ -14,7 +14,7 @@ struct StationRecord {
 };
 
 struct StationManager {
-    const char* station_file_name = "station_file.txt";
+    const char* station_file_name = "data/station_file.txt";
     std::fstream file;
     Bplustree<std::string, int> data;
     StationManager();
@@ -26,3 +26,5 @@ struct StationManager {
     int query_station_no(const std::string& station_name);
     std::string query_station_name(const int &station_no);
 };
+
+extern StationManager station_manager;

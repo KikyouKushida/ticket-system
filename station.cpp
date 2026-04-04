@@ -1,4 +1,7 @@
 #include "station.h"
+#include "file.h"
+
+int StationRecord::station_count = 0;
 
 StationRecord::StationRecord() {
     memset(station_name, 0, sizeof(station_name));
@@ -8,10 +11,10 @@ StationRecord::StationRecord() {
 void StationRecord::create_station_no() {
     station_count += 1;
     this -> station_no = station_count;
+    meta_manager.sync_from_static();
 }
 
-StationManager::StationManager() {
-
+StationManager::StationManager() : data("station_manager_data") {
 }
 
 void StationManager::open_file() {

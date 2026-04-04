@@ -1,4 +1,9 @@
 #include "seat.h"
+#include "file.h"
+
+SeatManager seat_manager;
+
+int SeatRecord::seat_count = 0;
 
 SeatRecord::SeatRecord() {
 
@@ -7,10 +12,14 @@ SeatRecord::SeatRecord() {
 void SeatRecord::create_seat_no() {
     seat_count += 1;
     seat_no = seat_count;
+    meta_manager.sync_from_static();
 }
 
-SeatManager::SeatManager() {
+SeatManager::SeatManager() : data("seat_manager_data") {
+}
 
+int SeatManager::query_seat_no(const int &train_no, const int &date) {
+    return data.find_value(pii(train_no, date));
 }
 
 void SeatManager::open_file() {

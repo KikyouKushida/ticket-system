@@ -1,5 +1,8 @@
 #include "user.h"
+#include "file.h"
 #include <cstring>
+
+std::set<std::string> logined_user;
 
 int UserRecord::user_count = 0;
 bool UserManager::first = true;
@@ -23,6 +26,11 @@ UserRecord::UserRecord() {
 void UserRecord::create_user_no() {
     user_count += 1;
     this -> user_no = user_count;
+    meta_manager.sync_from_static();
+}
+
+int UserManager::query_user_no(const std::string& username) {
+    return data.find_value(username);
 }
 
 void UserManager::open_file() {
@@ -34,8 +42,7 @@ void UserManager::open_file() {
     }
 }
 
-UserManager::UserManager() {
-    
+UserManager::UserManager() : data("user_manager_data") {
 }
 
 void UserManager::close_file() {

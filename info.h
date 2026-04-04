@@ -13,6 +13,7 @@ constexpr int MAILADDR_LEN = 31;
 constexpr int TRAIN_ID_LEN = 21;
 constexpr int STATION_NAME_LEN = 31;
 constexpr int STATION_NUM = 100;
+const std::string DATA_DIR = "data/";
 
 typedef std::pair<int, int> pii;
 
