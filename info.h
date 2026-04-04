@@ -19,9 +19,11 @@ typedef std::pair<int, int> pii;
 
 namespace utils {
 
-inline void write_string(char* dest, const std::string &src) {
-    memcpy(dest, src.data(), src.size());
-    dest[src.size()] = '\0';
+inline void write_string(char* dest, const std::string &src, const int len) {
+    memset(dest, 0, len);
+    int copy_len = std::min(static_cast<int>(src.size()), len - 1);
+    memcpy(dest, src.data(), copy_len);
+    dest[copy_len] = '\0';
 }
 
 inline int string_to_int(const std::string &src) {

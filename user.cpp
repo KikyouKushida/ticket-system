@@ -8,10 +8,10 @@ int UserRecord::user_count = 0;
 bool UserManager::first = true;
 
 UserRecord::UserRecord(const std::string &username, const std::string &password, const std::string &name, const std::string &mailAddr, const int &privilege) {
-    utils::write_string(this->username, username);
-    utils::write_string(this->password, password);
-    utils::write_string(this->name, name);
-    utils::write_string(this->mailAddr, mailAddr);
+    utils::write_string(this->username, username, USERNAME_LEN);
+    utils::write_string(this->password, password, PASSWORD_LEN);
+    utils::write_string(this->name, name, NAME_LEN);
+    utils::write_string(this->mailAddr, mailAddr, MAILADDR_LEN);
     this -> privilege = privilege;
 }
 
@@ -158,13 +158,13 @@ std::string UserManager::modify_profile(const std::string &cur_username, const U
     if (cur_username == user_record.username) {
         UserRecord this_user_record = read_record(cur_user_no);
         if (strlen(user_record.password) > 0) {
-            memcpy(this_user_record.password, user_record.password, PASSWORD_LEN);
+            utils::write_string(this_user_record.password, user_record.password, PASSWORD_LEN);
         }
         if (strlen(user_record.name) > 0) {
-            memcpy(this_user_record.name, user_record.name, NAME_LEN);
+            utils::write_string(this_user_record.name, user_record.name, NAME_LEN);
         }
         if (strlen(user_record.mailAddr) > 0) {
-            memcpy(this_user_record.mailAddr, user_record.mailAddr, MAILADDR_LEN);
+            utils::write_string(this_user_record.mailAddr, user_record.mailAddr, MAILADDR_LEN);
         }
         if (user_record.privilege != -1) {
             if (user_record.privilege >= this_user_record.privilege) {
@@ -192,13 +192,13 @@ std::string UserManager::modify_profile(const std::string &cur_username, const U
         return "-1";
     }
     if (strlen(user_record.password) > 0) {
-        memcpy(this_user_record.password, user_record.password, PASSWORD_LEN);
+        utils::write_string(this_user_record.password, user_record.password, PASSWORD_LEN);
     }
     if (strlen(user_record.name) > 0) {
-        memcpy(this_user_record.name, user_record.name, NAME_LEN);
+        utils::write_string(this_user_record.name, user_record.name, NAME_LEN);
     }
     if (strlen(user_record.mailAddr) > 0) {
-        memcpy(this_user_record.mailAddr, user_record.mailAddr, MAILADDR_LEN);
+        utils::write_string(this_user_record.mailAddr, user_record.mailAddr, MAILADDR_LEN);
     }
     if (user_record.privilege != -1) {
         if (user_record.privilege >= cur_user_record.privilege) {

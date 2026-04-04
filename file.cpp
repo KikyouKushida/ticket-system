@@ -31,7 +31,6 @@ MetaData scan_existing_meta() {
     meta_data.seat_count = scan_count_from_file("data/seat_file.txt", sizeof(SeatRecord));
     meta_data.train_count = scan_count_from_file("data/train_file.txt", sizeof(TrainRecord));
     meta_data.order_count = scan_count_from_file("data/order_file.txt", sizeof(OrderRecord));
-    UserManager::first = (meta_data.user_count == 0);
     return meta_data;
 }
 
@@ -69,6 +68,7 @@ MetaData MetaManager::read_meta() {
     MetaData meta_data{};
     file.seekg(0);
     file.read(reinterpret_cast<char *>(&meta_data), sizeof(MetaData));
+    UserManager::first = (meta_data.user_count == 0);
     return meta_data;
 }
 

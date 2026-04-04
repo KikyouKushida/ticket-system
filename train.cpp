@@ -23,7 +23,7 @@ TrainRecord::TrainRecord() {
 TrainRecord::TrainRecord(const std::string& train_id, const int station_num, const std::string *station_name, const int seat_num, 
     const int *prices, const std::string &start_time, const int *travel_times, const int *stop_times, 
     const std::string &sale_date) {
-        utils::write_string(this->train_id, train_id);
+        utils::write_string(this->train_id, train_id, TRAIN_ID_LEN);
         this -> station_num = station_num;
         for (int i = 0; i < station_num; ++i) {
             StationRecord station_record;

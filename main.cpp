@@ -49,11 +49,12 @@ std::string format_time(const pii &time) {
     return pad2(time.first) + ":" + pad2(time.second);
 }
 
-void print_query_train(std::vector<QueryTrainReturn> &query_train_return) {
+void print_query_train(const std::string &train_id, const char &type, std::vector<QueryTrainReturn> &query_train_return) {
     if (query_train_return.size() == 0) {
         std::cout << "-1\n";
         return;
     }
+    std::cout << train_id << " " << type << "\n";
     for (int i = 0; i < query_train_return.size(); ++i) {
         std::cout << query_train_return[i].station_name << " ";
         if (i == 0) {
@@ -118,7 +119,7 @@ void print_query_order(std::vector<OrderRecord> &query_order_return) {
         std::string arrive_time = format_time(utils::int_to_time(this_order_record.arrive_time));
         std::cout << "[" << status << "] " << train_id << " " << from << " " << depart_date
             << " " << depart_time << " -> " << to << " " << arrive_date << " " << arrive_time 
-            << " " << this_order_record.price << " " << this_order_record.seat << "\n";
+            << " " << this_order_record.price / this_order_record.seat << " " << this_order_record.seat << "\n";
     }
 }
 
@@ -294,8 +295,13 @@ bool execute(std::string &instruction) {
             }
         }
         pii date = string_to_date(d);
+        int train_no = train_manager.query_train_no(i);
+        char type = 0;
+        if (train_no > 0) {
+            type = train_manager.read_record(train_no).type;
+        }
         std::vector<QueryTrainReturn> query_train_return = train_manager.query_train(i, date);
-        print_query_train(query_train_return);
+        print_query_train(i, type, query_train_return);
     } else if (parts[1] == "query_ticket") {
         std::string s, t, d, p = "time";
         for (int j = 2; j < parts.size(); j += 2) {
