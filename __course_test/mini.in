@@ -1,0 +1,10 @@
+[3] add_user -g 10 -p awsl -u I_am_the_admin -m foo@bar.com -n admin -c cur
+[12] login -u I_am_the_admin -p awsl
+[16] add_user -u Croissant -n c -g 8 -p JTSKVj-Wpss -m m -c I_am_the_admin
+[25] login -u Croissant -p JTSKVj-Wpss
+[58] add_user -n MayerName -m PARTY.A.spectre@is.haunting -c Croissant -u Mayer -g 7 -p j5Ky$7bKQO
+[66] login -p j5Ky$7bKQO -u Mayer
+[73] query_profile -c Croissant -u Mayer
+[76] modify_profile -g 7 -c Croissant -u Mayer -p 7rbtroXKKQa-O8Xeh5
+[82] query_profile -c Croissant -u Mayer
+[90] exit

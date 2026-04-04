@@ -1,0 +1,12 @@
+[1] add_user -u admin -p pw -n n -m m -g 10
+[2] login -u admin -p pw
+[3] add_user -c admin -u alice -p pw -n a -m a@a -g 1
+[4] login -u alice -p pw
+[5] add_train -i T1 -n 3 -m 2 -s A|B|C -p 10|20 -x 08:00 -t 60|70 -o 5 -d 06-01|06-03 -y G
+[6] release_train -i T1
+[7] query_ticket -s A -t C -d 06-01 -p time
+[8] buy_ticket -u alice -i T1 -d 06-01 -n 1 -f A -t C -q false
+[9] query_order -u alice
+[10] clean
+[11] add_user -u root -p pw -n r -m r@r -g 10
+[12] exit

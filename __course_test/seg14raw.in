@@ -1,0 +1,14 @@
+[3] add_user -g 10 -p awsl -u I_am_the_admin -m foo@bar.com -n 奥斯卡 -c cur
+[12] login -u I_am_the_admin -p awsl
+[13] query_profile -c I_am_the_admin -u I_am_the_admin
+[16] add_user -u Croissant -n 可颂 -g 8 -p JTSKVj-Wpss -m MANIFESTO.OF@THE.COMMUNIST -c I_am_the_admin
+[25] login -u Croissant -p JTSKVj-Wpss
+[32] query_profile -u Croissant -c Croissant
+[37] query_profile -c I_am_the_admin -u Croissant
+[44] query_profile -u I_am_the_admin -c Croissant
+[51] query_profile -u Croissant -c I_am_the_admin
+[58] add_user -n 梅尔 -m PARTY.A.spectre@is.haunting -c Croissant -u Mayer -g 7 -p j5Ky$7bKQO
+[66] login -p j5Ky$7bKQO -u Mayer
+[73] query_profile -c Croissant -u Mayer
+[76] modify_profile -g 7 -c Croissant -u Mayer -p 7rbtroXKKQa-O8Xeh5
+[82] query_profile -c Croissant -u Mayer

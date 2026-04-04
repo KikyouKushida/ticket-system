@@ -31,12 +31,23 @@ MetaData scan_existing_meta() {
     meta_data.seat_count = scan_count_from_file("data/seat_file.txt", sizeof(SeatRecord));
     meta_data.train_count = scan_count_from_file("data/train_file.txt", sizeof(TrainRecord));
     meta_data.order_count = scan_count_from_file("data/order_file.txt", sizeof(OrderRecord));
+    UserManager::first = (meta_data.user_count == 0);
     return meta_data;
 }
 
 }  // namespace
 
 MetaManager::MetaManager() {
+
+}
+
+void MetaManager::clear() {
+    UserRecord::user_count = 0;
+    StationRecord::station_count = 0;
+    SeatRecord::seat_count = 0;
+    TrainRecord::train_count = 0;
+    OrderRecord::order_count = 0;
+    sync_from_static();
 }
 
 void MetaManager::open_file() {

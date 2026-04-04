@@ -201,7 +201,7 @@ std::string UserManager::modify_profile(const std::string &cur_username, const U
         memcpy(this_user_record.mailAddr, user_record.mailAddr, MAILADDR_LEN);
     }
     if (user_record.privilege != -1) {
-        if (user_record.privilege >= this_user_record.privilege) {
+        if (user_record.privilege >= cur_user_record.privilege) {
             return "-1";
         }
         this_user_record.privilege = user_record.privilege;

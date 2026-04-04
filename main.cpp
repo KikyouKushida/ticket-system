@@ -34,6 +34,21 @@ pii string_to_time(std::string &str) {
     return pii((str[0] - '0') * 10 + str[1] - '0', (str[3] - '0') * 10 + str[4] - '0');
 }
 
+std::string pad2(const int &x) {
+    if (x < 10) {
+        return "0" + utils::int_to_string(x);
+    }
+    return utils::int_to_string(x);
+}
+
+std::string format_date(const pii &date) {
+    return pad2(date.first) + "-" + pad2(date.second);
+}
+
+std::string format_time(const pii &time) {
+    return pad2(time.first) + ":" + pad2(time.second);
+}
+
 void print_query_train(std::vector<QueryTrainReturn> &query_train_return) {
     if (query_train_return.size() == 0) {
         std::cout << "-1\n";
@@ -44,19 +59,15 @@ void print_query_train(std::vector<QueryTrainReturn> &query_train_return) {
         if (i == 0) {
             std::cout << "xx-xx xx:xx -> ";
         } else {
-            std::string arrive_date = utils::int_to_string(query_train_return[i].arrive_date.first) + "-" + 
-                utils::int_to_string(query_train_return[i].arrive_date.second);
-            std::string arrive_time = utils::int_to_string(query_train_return[i].arrive_time.first) + ":" + 
-                utils::int_to_string(query_train_return[i].arrive_time.second);
+            std::string arrive_date = format_date(query_train_return[i].arrive_date);
+            std::string arrive_time = format_time(query_train_return[i].arrive_time);
             std::cout << arrive_date << " " << arrive_time << " -> ";
         }
         if (i == query_train_return.size() - 1) {
             std::cout << "xx-xx xx:xx ";
         } else {
-            std::string depart_date = utils::int_to_string(query_train_return[i].depart_date.first) + "-" + 
-                utils::int_to_string(query_train_return[i].depart_date.second);
-            std::string depart_time = utils::int_to_string(query_train_return[i].depart_time.first) + ":" + 
-                utils::int_to_string(query_train_return[i].depart_time.second);
+            std::string depart_date = format_date(query_train_return[i].depart_date);
+            std::string depart_time = format_time(query_train_return[i].depart_time);
             std::cout << depart_date << " " << depart_time << " ";
         }
         std::cout << query_train_return[i].price << " ";
@@ -71,14 +82,10 @@ void print_query_train(std::vector<QueryTrainReturn> &query_train_return) {
 void print_query_ticket(std::vector<QueryTicketReturn> &query_ticket_return) {
     std::cout << query_ticket_return.size() << "\n";
     for (int i = 0; i < query_ticket_return.size(); ++i) {
-        std::string depart_date = utils::int_to_string(query_ticket_return[i].depart_date.first) + "-" + 
-            utils::int_to_string(query_ticket_return[i].depart_date.second);
-        std::string depart_time = utils::int_to_string(query_ticket_return[i].depart_time.first) + ":" + 
-            utils::int_to_string(query_ticket_return[i].depart_time.second);
-        std::string arrive_date = utils::int_to_string(query_ticket_return[i].arrive_date.first) + "-" + 
-            utils::int_to_string(query_ticket_return[i].arrive_date.second);
-        std::string arrive_time = utils::int_to_string(query_ticket_return[i].arrive_time.first) + ":" + 
-            utils::int_to_string(query_ticket_return[i].arrive_time.second);
+        std::string depart_date = format_date(query_ticket_return[i].depart_date);
+        std::string depart_time = format_time(query_ticket_return[i].depart_time);
+        std::string arrive_date = format_date(query_ticket_return[i].arrive_date);
+        std::string arrive_time = format_time(query_ticket_return[i].arrive_time);
         std::cout << query_ticket_return[i].train_id << " " << query_ticket_return[i].depart_station_name << " " 
             << depart_date << " " << depart_time << " -> " << query_ticket_return[i].arrive_station_name << " " 
             << arrive_date << " " << arrive_time << " " << query_ticket_return[i].price << " " 
@@ -105,14 +112,10 @@ void print_query_order(std::vector<OrderRecord> &query_order_return) {
         train_id = train_manager.query_train_id(this_order_record.train_no);
         from = station_manager.query_station_name(this_order_record.depart_station_no);
         to = station_manager.query_station_name(this_order_record.arrive_station_no);
-        std::string depart_date = utils::int_to_string(utils::int_to_date(this_order_record.depart_date).first) + "-" + 
-            utils::int_to_string(utils::int_to_date(this_order_record.depart_date).second);
-        std::string depart_time = utils::int_to_string(utils::int_to_time(this_order_record.depart_time).first) + ":" + 
-            utils::int_to_string(utils::int_to_time(this_order_record.depart_time).second);
-        std::string arrive_date = utils::int_to_string(utils::int_to_date(this_order_record.arrive_date).first) + "-" + 
-            utils::int_to_string(utils::int_to_date(this_order_record.arrive_date).second);
-        std::string arrive_time = utils::int_to_string(utils::int_to_time(this_order_record.arrive_time).first) + ":" + 
-            utils::int_to_string(utils::int_to_time(this_order_record.arrive_time).second);
+        std::string depart_date = format_date(utils::int_to_date(this_order_record.depart_date));
+        std::string depart_time = format_time(utils::int_to_time(this_order_record.depart_time));
+        std::string arrive_date = format_date(utils::int_to_date(this_order_record.arrive_date));
+        std::string arrive_time = format_time(utils::int_to_time(this_order_record.arrive_time));
         std::cout << "[" << status << "] " << train_id << " " << from << " " << depart_date
             << " " << depart_time << " -> " << to << " " << arrive_date << " " << arrive_time 
             << " " << this_order_record.price << " " << this_order_record.seat << "\n";
@@ -122,6 +125,26 @@ void print_query_order(std::vector<OrderRecord> &query_order_return) {
 UserManager user_manager;
 TrainManager train_manager;
 OrderManager order_manager;
+
+void clean_all_data() {
+    user_manager.close_file();
+    station_manager.close_file();
+    seat_manager.close_file();
+    train_manager.close_file();
+    order_manager.close_file();
+    meta_manager.close_file();
+    logined_user.clear();
+    UserManager::first = true;
+    system("rmdir /s /q data >nul 2>nul");
+    system("mkdir data >nul 2>nul");
+    meta_manager.open_file();
+    meta_manager.load();
+    user_manager.open_file();
+    station_manager.open_file();
+    seat_manager.open_file();
+    train_manager.open_file();
+    order_manager.open_file();
+}
 
 void set_up() {
     system("mkdir data >nul 2>nul");
@@ -146,7 +169,8 @@ bool execute(std::string &instruction) {
         std::cout << "bye\n";
         return false;
     } else if (parts.size() == 2 && parts[1] == "clean") {
-        // TO DO: Clean all the data
+        clean_all_data();
+        std::cout << "0\n";
     } else if (parts[1] == "add_user") {
         std::string c, u, p, n, m; 
         int g;
@@ -192,7 +216,7 @@ bool execute(std::string &instruction) {
         std::cout << user_manager.query_profile(c, u) << "\n";
     } else if (parts[1] == "modify_profile") {
         std::string c, u, p, n, m; 
-        int g;
+        int g = -1;
         for (int i = 2; i < parts.size(); i += 2) {
             if (parts[i] == "-c") {
                 c = parts[i + 1];
@@ -365,7 +389,12 @@ int main() {
     set_up();
     while (true) {
         std::string instruction;
-        std::getline(std::cin, instruction);
+        if (!std::getline(std::cin, instruction)) {
+            break;
+        }
+        if (instruction.empty()) {
+            continue;
+        }
         if (execute(instruction) == false) {
             break;
         }

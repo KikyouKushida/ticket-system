@@ -34,6 +34,9 @@ inline int string_to_int(const std::string &src) {
 
 inline std::string int_to_string(const int &src) {
     std::string result;
+    if (src == 0) {
+        return "0";
+    }
     int x = abs(src);
     while (x) {
         result += (x % 10 + '0');

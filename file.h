@@ -19,6 +19,7 @@ struct MetaManager {
     void write_meta(const MetaData &meta_data);
     void load();
     void sync_from_static();
+    void clear();
 };
 
 extern MetaManager meta_manager;
