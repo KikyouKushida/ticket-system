@@ -184,9 +184,18 @@ bool execute(std::string &instruction) {
     if (parts.size() == 2 && parts[1] == "exit") {
         // TO DO: Logout everyone
         user_manager.logout_all_user();
+        for (int i = 0; i < CACHE_SIZE; ++i) {
+            if (cache[i].valid && cache[i].dirty) {
+                std::fstream file(cache[i].file_name, std::ios::in | std::ios::out | std::ios::binary);
+                cache[i].write_back(file);
+            }
+        }
         std::cout << "bye\n";
         return false;
     } else if (parts.size() == 2 && parts[1] == "clean") {
+        for (int i = 0; i < CACHE_SIZE; ++i) {
+            cache[i].valid = false;
+        }
         clean_all_data();
         std::cout << "0\n";
     } else if (parts[1] == "add_user") {

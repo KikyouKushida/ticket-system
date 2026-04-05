@@ -10,6 +10,26 @@
 
 #include "info.h"
 
+const int CACHE_SIZE = 8192;
+inline int time_flow = 0;
+
+struct CacheEntry {
+    std::string file_name;
+    int page_id;
+    int last_visit_time;
+    char page[PAGE_SIZE];
+    bool dirty;
+    bool valid;
+
+    void write_back(std::fstream &file_) {
+        file_.seekp(static_cast<std::streamoff>(page_id) * PAGE_SIZE);
+        file_.write(reinterpret_cast<const char *>(&page), sizeof(page));
+        file_.flush();
+    }
+};
+
+inline CacheEntry cache[CACHE_SIZE];
+
 template <typename T1, typename T2>
 struct Node {
     inline static int node_count = 0;
@@ -347,22 +367,148 @@ private:
     template <typename Page>
     Page read_page(int page_id) {
         Page page{};
+        time_flow += 1;
+        for (int i = 0; i < CACHE_SIZE; ++i) {
+            if (cache[i].valid == false) {
+                continue;
+            } 
+            if (cache[i].page_id != page_id) {
+                continue;
+            }
+            if (cache[i].file_name != path_) {
+                continue;
+            }
+            memcpy(&page, cache[i].page, sizeof(page));
+            cache[i].last_visit_time = time_flow;
+            return page;
+        }
         file_.seekg(static_cast<std::streamoff>(page_id) * PAGE_SIZE);
         file_.read(reinterpret_cast<char *>(&page), sizeof(page));
+        for (int i = 0; i < CACHE_SIZE; ++i) {
+            if (cache[i].valid == false) {
+                cache[i].valid = true;
+                cache[i].last_visit_time = time_flow;
+                cache[i].page_id = page_id;
+                cache[i].dirty = false;
+                cache[i].file_name = path_;
+                memcpy(cache[i].page, &page, sizeof(page));
+                return page;
+            }
+        }
+        int min_last_visit_time_index = 0;
+        for (int i = 1; i < CACHE_SIZE; ++i) {
+            if (cache[i].last_visit_time < cache[min_last_visit_time_index].last_visit_time) {
+                min_last_visit_time_index = i;
+            }
+        }
+        int i = min_last_visit_time_index;
+        if (cache[i].dirty) {
+            cache[i].write_back(file_);
+        }
+        cache[i].last_visit_time = time_flow;
+        cache[i].page_id = page_id;
+        cache[i].dirty = false;
+        cache[i].file_name = path_;
+        memcpy(cache[i].page, &page, sizeof(page));
         return page;
     }
 
     template <typename Page>
     void write_page(int page_id, const Page &page) {
-        file_.seekp(static_cast<std::streamoff>(page_id) * PAGE_SIZE);
-        file_.write(reinterpret_cast<const char *>(&page), sizeof(page));
-        file_.flush();
+        time_flow += 1;
+        for (int i = 0; i < CACHE_SIZE; ++i) {
+            if (cache[i].valid == false) {
+                continue;
+            } 
+            if (cache[i].page_id != page_id) {
+                continue;
+            }
+            if (cache[i].file_name != path_) {
+                continue;
+            }
+            memcpy(cache[i].page, &page, sizeof(page));
+            cache[i].last_visit_time = time_flow;
+            cache[i].dirty = true;
+            return;
+        }
+        for (int i = 0; i < CACHE_SIZE; ++i) {
+            if (cache[i].valid == false) {
+                cache[i].valid = true;
+                cache[i].last_visit_time = time_flow;
+                cache[i].page_id = page_id;
+                cache[i].dirty = true;
+                cache[i].file_name = path_;
+                memcpy(cache[i].page, &page, sizeof(page));
+                return;
+            }
+        }
+        int min_last_visit_time_index = 0;
+        for (int i = 1; i < CACHE_SIZE; ++i) {
+            if (cache[i].last_visit_time < cache[min_last_visit_time_index].last_visit_time) {
+                min_last_visit_time_index = i;
+            }
+        }
+        int i = min_last_visit_time_index;
+        if (cache[i].dirty) {
+            cache[i].write_back(file_);
+        }
+        cache[i].last_visit_time = time_flow;
+        cache[i].page_id = page_id;
+        cache[i].dirty = true;
+        cache[i].file_name = path_;
+        memcpy(cache[i].page, &page, sizeof(page));
+        // file_.seekp(static_cast<std::streamoff>(page_id) * PAGE_SIZE);
+        // file_.write(reinterpret_cast<const char *>(&page), sizeof(page));
+        // file_.flush();
     }
 
     Header read_header(int page_id) {
         Header header{};
+        time_flow += 1;
+        for (int i = 0; i < CACHE_SIZE; ++i) {
+            if (cache[i].valid == false) {
+                continue;
+            } 
+            if (cache[i].page_id != page_id) {
+                continue;
+            }
+            if (cache[i].file_name != path_) {
+                continue;
+            }
+            memcpy(&header, cache[i].page, sizeof(header));
+            cache[i].last_visit_time = time_flow;
+            return header;
+        }
+        char page_buf[PAGE_SIZE]{};
         file_.seekg(static_cast<std::streamoff>(page_id) * PAGE_SIZE);
-        file_.read(reinterpret_cast<char *>(&header), sizeof(header));
+        file_.read(reinterpret_cast<char *>(page_buf), sizeof(page_buf));
+        memcpy(&header, &page_buf, sizeof(header));
+        for (int i = 0; i < CACHE_SIZE; ++i) {
+            if (cache[i].valid == false) {
+                cache[i].valid = true;
+                cache[i].last_visit_time = time_flow;
+                cache[i].page_id = page_id;
+                cache[i].dirty = false;
+                cache[i].file_name = path_;
+                memcpy(cache[i].page, page_buf, sizeof(page_buf));
+                return header;
+            }
+        }
+        int min_last_visit_time_index = 0;
+        for (int i = 1; i < CACHE_SIZE; ++i) {
+            if (cache[i].last_visit_time < cache[min_last_visit_time_index].last_visit_time) {
+                min_last_visit_time_index = i;
+            }
+        }
+        int i = min_last_visit_time_index;
+        if (cache[i].dirty) {
+            cache[i].write_back(file_);
+        }
+        cache[i].last_visit_time = time_flow;
+        cache[i].page_id = page_id;
+        cache[i].dirty = false;
+        cache[i].file_name = path_;
+        memcpy(cache[i].page, page_buf, sizeof(page_buf));
         return header;
     }
 
