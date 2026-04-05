@@ -94,6 +94,23 @@ void print_query_ticket(std::vector<QueryTicketReturn> &query_ticket_return) {
     }
 }
 
+void print_query_transfer(std::vector<QueryTicketReturn> &query_transfer_return) {
+    if (query_transfer_return.size() == 0) {
+        std::cout << "0\n";
+        return;
+    }
+    for (int i = 0; i < query_transfer_return.size(); ++i) {
+        std::string depart_date = format_date(query_transfer_return[i].depart_date);
+        std::string depart_time = format_time(query_transfer_return[i].depart_time);
+        std::string arrive_date = format_date(query_transfer_return[i].arrive_date);
+        std::string arrive_time = format_time(query_transfer_return[i].arrive_time);
+        std::cout << query_transfer_return[i].train_id << " " << query_transfer_return[i].depart_station_name << " " 
+            << depart_date << " " << depart_time << " -> " << query_transfer_return[i].arrive_station_name << " " 
+            << arrive_date << " " << arrive_time << " " << query_transfer_return[i].price << " " 
+            << query_transfer_return[i].seat << "\n";
+    }
+}
+
 void print_query_order(std::vector<OrderRecord> &query_order_return) {
     if (query_order_return.size() == 1 && query_order_return[0].order_no == -1) {
         std::cout << "-1\n";
@@ -342,7 +359,7 @@ bool execute(std::string &instruction) {
             sorting = 1;
         }
         std::vector<QueryTicketReturn> query_transfer_return = train_manager.query_transfer(s, t, date, sorting);
-        print_query_ticket(query_transfer_return);
+        print_query_transfer(query_transfer_return);
     } else if (parts[1] == "buy_ticket") {
         std::string u, i, d, n, f, t, q = "false";
         for (int j = 2; j < parts.size(); j += 2) {

@@ -252,7 +252,7 @@ public:
     }
 
     bool erase_pair(const Key &key, const Value &value) {
-        int leaf_id = find_leaf_page(key);
+        int leaf_id = find_leftmost_leaf_page(key);
         while (leaf_id != 0) {
             LeafPage leaf = read_leaf(leaf_id);
             int pos = leaf_lower_bound(leaf, key);
@@ -265,25 +265,31 @@ public:
             }
             if (leaf.header.next == 0) break;
             LeafPage next_leaf = read_leaf(leaf.header.next);
-            if (next_leaf.header.size == 0 || compare_disk_value<Key>(next_leaf.keys[0], key) != 0) break;
+            if (next_leaf.header.size == 0 || compare_disk_value<Key>(next_leaf.keys[0], key) > 0) break;
             leaf_id = leaf.header.next;
         }
         return false;
     }
 
     Value find_one(const Key &key) {
-        int leaf_id = find_leaf_page(key);
-        LeafPage leaf = read_leaf(leaf_id);
-        int pos = leaf_lower_bound(leaf, key);
-        if (pos < leaf.header.size && compare_disk_value<Key>(leaf.keys[pos], key) == 0) {
-            return ValueCodecType::from_disk(leaf.values[pos]);
+        int leaf_id = find_leftmost_leaf_page(key);
+        while (leaf_id != 0) {
+            LeafPage leaf = read_leaf(leaf_id);
+            int pos = leaf_lower_bound(leaf, key);
+            if (pos < leaf.header.size && compare_disk_value<Key>(leaf.keys[pos], key) == 0) {
+                return ValueCodecType::from_disk(leaf.values[pos]);
+            }
+            if (leaf.header.next == 0) break;
+            LeafPage next_leaf = read_leaf(leaf.header.next);
+            if (next_leaf.header.size == 0 || compare_disk_value<Key>(next_leaf.keys[0], key) > 0) break;
+            leaf_id = leaf.header.next;
         }
         return Value();
     }
 
     std::vector<Value> find_all(const Key &key) {
         std::vector<Value> result;
-        int leaf_id = find_leaf_page(key);
+        int leaf_id = find_leftmost_leaf_page(key);
         while (leaf_id != 0) {
             LeafPage leaf = read_leaf(leaf_id);
             int pos = leaf_lower_bound(leaf, key);
@@ -295,7 +301,7 @@ public:
             }
             if (leaf.header.next == 0) break;
             LeafPage next_leaf = read_leaf(leaf.header.next);
-            if (next_leaf.header.size == 0 || compare_disk_value<Key>(next_leaf.keys[0], key) != 0) break;
+            if (next_leaf.header.size == 0 || compare_disk_value<Key>(next_leaf.keys[0], key) > 0) break;
             leaf_id = leaf.header.next;
         }
         return result;
@@ -423,6 +429,17 @@ private:
         }
     }
 
+    int find_leftmost_leaf_page(const Key &key) {
+        int page_id = root_page();
+        while (true) {
+            Header header = read_header(page_id);
+            if (header.is_leaf) return page_id;
+            InternalPage page = read_internal(page_id);
+            int idx = internal_child_index_leftmost(page, key);
+            page_id = page.children[idx];
+        }
+    }
+
     int leaf_lower_bound(const LeafPage &page, const Key &key) const {
         int l = 0, r = page.header.size;
         while (l < r) {
@@ -448,6 +465,14 @@ private:
     int internal_child_index(const InternalPage &page, const Key &key) const {
         int idx = 0;
         while (idx < page.header.size && compare_disk_value<Key>(page.keys[idx], key) <= 0) {
+            ++idx;
+        }
+        return idx;
+    }
+
+    int internal_child_index_leftmost(const InternalPage &page, const Key &key) const {
+        int idx = 0;
+        while (idx < page.header.size && compare_disk_value<Key>(page.keys[idx], key) < 0) {
             ++idx;
         }
         return idx;
@@ -595,14 +620,24 @@ private:
     }
 
     bool erase_one(const Key &key) {
-        int leaf_id = find_leaf_page(key);
-        LeafPage leaf = read_leaf(leaf_id);
-        int pos = leaf_lower_bound(leaf, key);
-        if (pos >= leaf.header.size || compare_disk_value<Key>(leaf.keys[pos], key) != 0) {
-            return false;
+        int leaf_id = find_leftmost_leaf_page(key);
+        while (leaf_id != 0) {
+            LeafPage leaf = read_leaf(leaf_id);
+            int pos = leaf_lower_bound(leaf, key);
+            if (pos < leaf.header.size && compare_disk_value<Key>(leaf.keys[pos], key) == 0) {
+                erase_from_leaf(leaf_id, leaf, pos);
+                return true;
+            }
+            if (leaf.header.next == 0) {
+                return false;
+            }
+            LeafPage next_leaf = read_leaf(leaf.header.next);
+            if (next_leaf.header.size == 0 || compare_disk_value<Key>(next_leaf.keys[0], key) > 0) {
+                return false;
+            }
+            leaf_id = leaf.header.next;
         }
-        erase_from_leaf(leaf_id, leaf, pos);
-        return true;
+        return false;
     }
 
     void erase_from_leaf(int leaf_id, LeafPage &leaf, int pos) {

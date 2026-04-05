@@ -53,17 +53,25 @@ inline std::string int_to_string(const int &src) {
 
 inline int date_to_int(const pii &date) {
     if (date.first == 6) {
+        if (date.second < 1 || date.second > 30) return -1;
         return date.second;
     } else if (date.first == 7) {
+        if (date.second < 1 || date.second > 31) return -1;
         return 30 + date.second;
     } else if (date.first == 8) {
+        if (date.second < 1 || date.second > 31) return -1;
         return 61 + date.second;
-    } else {
+    } else if (date.first == 9) {
+        if (date.second < 1 || date.second > 30) return -1;
         return 92 + date.second;
     }
+    return -1;
 }
 
 inline pii int_to_date(const int &num) {
+    if (num <= 0) {
+        return pii(0, 0);
+    }
     if (num <= 30) {
         return pii(6, num);
     } else if (num <= 61) {

@@ -70,7 +70,13 @@ int UserManager::add_user(const std::string &cur_username, UserRecord &user_reco
         first = false;
         return 0;
     }
+    if (logined_user.find(cur_username) == logined_user.end()) {
+        return -1;
+    }
     int cur_user_no = data.find_value(cur_username);
+    if (cur_user_no <= 0) {
+        return -1;
+    }
     int this_user_no = data.find_value(user_record.username);
     if (this_user_no > 0) {
         return -1;

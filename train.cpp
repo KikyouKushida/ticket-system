@@ -301,6 +301,7 @@ std::vector<QueryTicketReturn> TrainManager::query_transfer(const std::string &d
         int min_total_time = -1, min_total_price = -1;
         int depart_station_no = station_manager.query_station_no(depart_station);
         int arrive_station_no = station_manager.query_station_no(arrive_station);
+        std::vector<int> possible_train_no_2 = data2.find_all_values(arrive_station_no);
         if (depart_station_no <= 0 || arrive_station_no <= 0 || depart_station_no == arrive_station_no) {
             return query_transfer_return;
         }
@@ -358,68 +359,109 @@ std::vector<QueryTicketReturn> TrainManager::query_transfer(const std::string &d
                     tmp1.time += this_train_record.stop_times[j - 1];
                 }
                 tmp1.seat = std::min(tmp1.seat, this_seat_record[j]);
-                std::vector<QueryTicketReturn> tmp3 = query_ticket(tmp1.arrive_station_name, 
-                    arrive_station, tmp1.arrive_date, tmp1.arrive_time, this_train_no, sorting);
-                for (int k = 0; k < tmp3.size(); ++k) {
-                    tmp2 = tmp3[k];
-                    int total_price = tmp1.price + tmp2.price;
-                    int total_time = utils::time_to_int(tmp2.arrive_time) - utils::time_to_int(tmp1.depart_time)
-                        + (utils::date_to_int(tmp2.arrive_date) - utils::date_to_int(tmp1.depart_date)) * 1440;
-                    if (query_transfer_return.size() == 0) {
-                        query_transfer_return.push_back(tmp1);
-                        query_transfer_return.push_back(tmp2);
-                        min_total_price = total_price;
-                        min_total_time = total_time;
-                    } else {
-                        if (sorting == 1) {
-                            if (total_time < min_total_time) {
-                                query_transfer_return[0] = tmp1;
-                                query_transfer_return[1] = tmp2;
-                                min_total_price = total_price;
-                                min_total_time = total_time;
-                            } else if (total_time == min_total_time && total_price < min_total_price) {
-                                query_transfer_return[0] = tmp1;
-                                query_transfer_return[1] = tmp2;
-                                min_total_price = total_price;
-                                min_total_time = total_time;
-                            } else if (total_time == min_total_time && total_price == min_total_price
-                                && tmp1.train_id < query_transfer_return[0].train_id) {
-                                    query_transfer_return[0] = tmp1;
-                                    query_transfer_return[1] = tmp2;
-                                    min_total_price = total_price;
-                                    min_total_time = total_time;
-                            } else if (total_time == min_total_time && total_price == min_total_price
-                                && tmp1.train_id == query_transfer_return[0].train_id
-                                && tmp2.train_id < query_transfer_return[1].train_id) {
-                                    query_transfer_return[0] = tmp1;
-                                    query_transfer_return[1] = tmp2;
-                                    min_total_price = total_price;
-                                    min_total_time = total_time;
-                            }
+                int transfer_station_no = this_train_record.station_no[j + 1];
+                std::vector<int> possible_train_no_3 = data2.find_all_values(transfer_station_no);
+                std::vector<int> possible_transfer_train_no = utils::intersect(possible_train_no_2, possible_train_no_3);
+                int max_next_date = -1;
+                for (int k = 0; k < possible_transfer_train_no.size(); ++k) {
+                    int next_train_no = possible_transfer_train_no[k];
+                    if (next_train_no == this_train_no) {
+                        continue;
+                    }
+                    TrainRecord next_train_record = read_record(next_train_no);
+                    int transfer_index = -1, arrive_index = -1;
+                    for (int l = 0; l < next_train_record.station_num; ++l) {
+                        if (next_train_record.station_no[l] == transfer_station_no) {
+                            transfer_index = l;
+                        }
+                        if (next_train_record.station_no[l] == arrive_station_no) {
+                            arrive_index = l;
+                        }
+                    }
+                    if (transfer_index == -1 || transfer_index >= arrive_index) {
+                        continue;
+                    }
+                    int next_date = next_train_record.sale_begin_date, next_time = next_train_record.start_time;
+                    for (int l = 0; l < transfer_index; ++l) {
+                        next_time += next_train_record.travel_times[l];
+                        next_time += next_train_record.stop_times[l];
+                        while (next_time >= 1440) {
+                            next_time -= 1440;
+                            next_date += 1;
+                        }
+                    }
+                    max_next_date = std::max(max_next_date, next_train_record.sale_end_date + next_date - next_train_record.sale_begin_date);
+                }
+                int begin_date = utils::date_to_int(tmp1.arrive_date);
+                for (int next_date = begin_date; next_date <= max_next_date; ++next_date) {
+                    pii next_depart_date = utils::int_to_date(next_date);
+                    pii next_depart_time = pii(0, 0);
+                    if (next_date == begin_date) {
+                        next_depart_time = tmp1.arrive_time;
+                    }
+                    std::vector<QueryTicketReturn> tmp3 = query_ticket(tmp1.arrive_station_name, 
+                        arrive_station, next_depart_date, next_depart_time, this_train_no, sorting);
+                    for (int k = 0; k < tmp3.size(); ++k) {
+                        tmp2 = tmp3[k];
+                        int total_price = tmp1.price + tmp2.price;
+                        int total_time = utils::time_to_int(tmp2.arrive_time) - utils::time_to_int(tmp1.depart_time)
+                            + (utils::date_to_int(tmp2.arrive_date) - utils::date_to_int(tmp1.depart_date)) * 1440;
+                        if (query_transfer_return.size() == 0) {
+                            query_transfer_return.push_back(tmp1);
+                            query_transfer_return.push_back(tmp2);
+                            min_total_price = total_price;
+                            min_total_time = total_time;
                         } else {
-                            if (total_price < min_total_price) {
-                                query_transfer_return[0] = tmp1;
-                                query_transfer_return[1] = tmp2;
-                                min_total_price = total_price;
-                                min_total_time = total_time;
-                            } else if (total_price == min_total_price && total_time < min_total_time) {
-                                query_transfer_return[0] = tmp1;
-                                query_transfer_return[1] = tmp2;
-                                min_total_price = total_price;
-                                min_total_time = total_time;
-                            } else if (total_time == min_total_time && total_price == min_total_price
-                                && tmp1.train_id < query_transfer_return[0].train_id) {
+                            if (sorting == 1) {
+                                if (total_time < min_total_time) {
                                     query_transfer_return[0] = tmp1;
                                     query_transfer_return[1] = tmp2;
                                     min_total_price = total_price;
                                     min_total_time = total_time;
-                            } else if (total_time == min_total_time && total_price == min_total_price
-                                && tmp1.train_id == query_transfer_return[0].train_id
-                                && tmp2.train_id < query_transfer_return[1].train_id) {
+                                } else if (total_time == min_total_time && total_price < min_total_price) {
                                     query_transfer_return[0] = tmp1;
                                     query_transfer_return[1] = tmp2;
                                     min_total_price = total_price;
                                     min_total_time = total_time;
+                                } else if (total_time == min_total_time && total_price == min_total_price
+                                    && tmp1.train_id < query_transfer_return[0].train_id) {
+                                        query_transfer_return[0] = tmp1;
+                                        query_transfer_return[1] = tmp2;
+                                        min_total_price = total_price;
+                                        min_total_time = total_time;
+                                } else if (total_time == min_total_time && total_price == min_total_price
+                                    && tmp1.train_id == query_transfer_return[0].train_id
+                                    && tmp2.train_id < query_transfer_return[1].train_id) {
+                                        query_transfer_return[0] = tmp1;
+                                        query_transfer_return[1] = tmp2;
+                                        min_total_price = total_price;
+                                        min_total_time = total_time;
+                                }
+                            } else {
+                                if (total_price < min_total_price) {
+                                    query_transfer_return[0] = tmp1;
+                                    query_transfer_return[1] = tmp2;
+                                    min_total_price = total_price;
+                                    min_total_time = total_time;
+                                } else if (total_price == min_total_price && total_time < min_total_time) {
+                                    query_transfer_return[0] = tmp1;
+                                    query_transfer_return[1] = tmp2;
+                                    min_total_price = total_price;
+                                    min_total_time = total_time;
+                                } else if (total_time == min_total_time && total_price == min_total_price
+                                    && tmp1.train_id < query_transfer_return[0].train_id) {
+                                        query_transfer_return[0] = tmp1;
+                                        query_transfer_return[1] = tmp2;
+                                        min_total_price = total_price;
+                                        min_total_time = total_time;
+                                } else if (total_time == min_total_time && total_price == min_total_price
+                                    && tmp1.train_id == query_transfer_return[0].train_id
+                                    && tmp2.train_id < query_transfer_return[1].train_id) {
+                                        query_transfer_return[0] = tmp1;
+                                        query_transfer_return[1] = tmp2;
+                                        min_total_price = total_price;
+                                        min_total_time = total_time;
+                                }
                             }
                         }
                     }

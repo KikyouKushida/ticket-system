@@ -90,6 +90,9 @@ std::string OrderManager::buy_ticket(const std::string &username, const std::str
         if (this_train_record.released == false) {
             return "-1";
         }
+        if (tickets > this_train_record.seat_num) {
+            return "-1";
+        }
         int depart_index = -1, arrive_index = -1;
         for (int j = 0; j < this_train_record.station_num; ++j) {
             if (depart_station_no == this_train_record.station_no[j]) {
